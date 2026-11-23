@@ -1,0 +1,501 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4f0e8">
+  <meta name="description" content="Painel acadêmico para criar cobranças demonstrativas e acompanhar webhooks.">
+
+  <title>Oficina de Webhook — Central de cobranças</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/styles.css">
+
+  <script src="/app.js" defer></script>
+
+  <style>
+    .qr-section {
+      margin: 18px 0;
+      padding: 22px;
+      background: #f6f3eb;
+      border: 1px solid #e9e2d5;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .qr-section h3 {
+      margin: 8px 0;
+      font-family: Manrope, sans-serif;
+      font-size: 15px;
+      color: #30332d;
+    }
+
+    .qr-section p {
+      font-size: 10px;
+      color: #85877f;
+      margin: 5px 0;
+    }
+
+    .qr-frame {
+      display: inline-flex;
+      padding: 12px;
+      margin: 15px 0 10px;
+      background: #ffffff;
+      border: 1px solid #e9e2d5;
+      border-radius: 12px;
+    }
+
+    .qr-frame img {
+      display: block;
+      width: 180px;
+      height: 180px;
+      object-fit: contain;
+    }
+
+    .qr-warning {
+      display: block;
+      color: #a27b37;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .qr-section[hidden] {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <header class="topbar">
+
+    <a class="brand" href="/" aria-label="Oficina de Webhook, início">
+      <span class="brand-symbol">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+      <span class="brand-name">OFICINA <b>WEBHOOK</b></span>
+    </a>
+
+    <div class="top-meta">
+      <span class="live-dot"></span>
+      <span>AMBIENTE DE DEMONSTRAÇÃO</span>
+      <span class="top-divider"></span>
+      <span class="date-label">CENTRAL DE OPERAÇÕES</span>
+    </div>
+
+  </header>
+
+  <main class="container">
+
+    <section class="hero">
+
+      <div>
+        <p class="eyebrow">
+          <span class="eyebrow-line"></span>
+          PAGAMENTOS · EVENTOS · CONTROLE
+        </p>
+
+        <h1>
+          Uma visão clara.<br>
+          <em>Cada cobrança</em> no seu lugar.
+        </h1>
+
+        <p class="hero-copy">
+          Crie cobranças demonstrativas, acompanhe cada mudança de status e veja seus eventos registrados com segurança.
+        </p>
+      </div>
+
+      <aside class="hero-note">
+        <span class="note-icon">✳</span>
+        <div>
+          <strong>Projeto acadêmico</strong>
+          <p>
+            Um ambiente de simulação. Nenhuma transação financeira real é realizada.
+          </p>
+        </div>
+      </aside>
+
+    </section>
+
+    <section class="stats" aria-label="Resumo dos pagamentos">
+
+      <article class="stat-card">
+        <span class="stat-label">TOTAL REGISTRADO</span>
+        <strong id="stat-total">—</strong>
+        <span class="stat-foot">Cobranças no banco</span>
+        <span class="stat-mark">↗</span>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-label">AGUARDANDO</span>
+        <strong id="stat-pending">—</strong>
+        <span class="stat-foot">Status pending</span>
+        <span class="stat-mark">◷</span>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-label">APROVADOS</span>
+        <strong id="stat-approved">—</strong>
+        <span class="stat-foot">Status approved</span>
+        <span class="stat-mark">✓</span>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-label">VOLUME SIMULADO</span>
+        <strong id="stat-volume">—</strong>
+        <span class="stat-foot">Soma das cobranças</span>
+        <span class="stat-mark">R$</span>
+      </article>
+
+    </section>
+
+    <div class="workspace">
+
+      <section class="panel create-panel">
+
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">01 / NOVA OPERAÇÃO</p>
+            <h2>Criar cobrança</h2>
+          </div>
+          <span class="head-icon">＋</span>
+        </div>
+
+        <p class="section-description">
+          Preencha os dados para gerar um novo registro.
+        </p>
+
+        <form id="payment-form" novalidate>
+
+          <label for="cliente">Nome do cliente</label>
+
+          <div class="input-wrap">
+            <span class="field-icon">◉</span>
+            <input
+              id="cliente"
+              name="cliente"
+              type="text"
+              maxlength="255"
+              placeholder="Ex.: Ana Silva"
+              autocomplete="name"
+              required
+            >
+          </div>
+
+          <label for="valor">Valor da cobrança</label>
+
+          <div class="input-wrap money-wrap">
+            <span class="currency">R$</span>
+            <input
+              id="valor"
+              name="valor"
+              type="number"
+              min="0.01"
+              max="99999999.99"
+              step="0.01"
+              placeholder="0,00"
+              required
+            >
+          </div>
+
+          <button class="button primary" id="create-button" type="submit">
+            <span>Criar cobrança</span>
+            <span class="button-arrow">↗</span>
+          </button>
+
+        </form>
+
+        <p class="form-hint">
+          <span>✦</span>
+          O registro será salvo no MySQL e continuará disponível após reiniciar o servidor.
+        </p>
+
+        <p id="form-message" class="message" role="alert" aria-live="polite"></p>
+
+      </section>
+
+      <section class="panel detail-panel" id="details-panel">
+
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">02 / ACOMPANHAMENTO</p>
+            <h2>Detalhes da cobrança</h2>
+          </div>
+          <span class="head-icon">⌁</span>
+        </div>
+
+        <div id="empty-state" class="empty-state">
+
+          <div class="empty-art">
+            <span>R$</span>
+            <i>✳</i>
+          </div>
+
+          <h3>Seu próximo registro aparece aqui.</h3>
+
+          <p>
+            Crie uma cobrança ou selecione uma da lista para acompanhar os detalhes e simular uma notificação.
+          </p>
+
+        </div>
+
+        <div id="payment-result" hidden>
+
+          <div class="detail-top">
+
+            <div>
+              <span class="tiny-label">CLIENTE</span>
+              <strong id="result-client">—</strong>
+            </div>
+
+            <div class="amount" id="result-amount">R$ 0,00</div>
+
+          </div>
+
+          <div class="status-row">
+            <span class="tiny-label">STATUS ATUAL</span>
+            <span id="status" class="status pending">Pendente</span>
+          </div>
+
+          <div class="id-row">
+
+            <div>
+              <span class="tiny-label">IDENTIFICADOR ÚNICO</span>
+              <code id="payment-id"></code>
+            </div>
+
+            <button type="button" id="copy-id" class="copy-button">
+              Copiar ID
+            </button>
+
+          </div>
+
+          <!-- QR CODE DEMONSTRATIVO -->
+
+          <div class="qr-section" id="qr-section">
+
+            <span class="tiny-label">PIX DEMONSTRATIVO</span>
+
+            <h3>QR Code da cobrança</h3>
+
+            <p>
+              Código ilustrativo vinculado ao identificador desta cobrança.
+            </p>
+
+            <div class="qr-frame">
+
+              <img
+                id="qr-image"
+                src=""
+                alt="QR Code demonstrativo, não pagável"
+                width="180"
+                height="180"
+              >
+
+            </div>
+
+            <span class="qr-warning">
+              ✳ NÃO PAGÁVEL · SIMULAÇÃO ACADÊMICA
+            </span>
+
+          </div>
+
+          <!-- SIMULADOR DE WEBHOOK -->
+
+          <div class="simulator">
+
+            <div class="sim-title">
+
+              <span class="sim-icon">⌁</span>
+
+              <div>
+                <span class="tiny-label">LABORATÓRIO DE EVENTOS</span>
+                <strong>Simular webhook</strong>
+              </div>
+
+              <span class="sim-tag">TESTE</span>
+
+            </div>
+
+            <label for="simulated-status">
+              Novo status da cobrança
+            </label>
+
+            <select id="simulated-status">
+
+              <option value="approved">
+                Aprovado · approved
+              </option>
+
+              <option value="rejected">
+                Recusado · rejected
+              </option>
+
+              <option value="cancelled">
+                Cancelado · cancelled
+              </option>
+
+            </select>
+
+            <button
+              type="button"
+              id="simulate-button"
+              class="button secondary"
+            >
+              <span>Enviar notificação simulada</span>
+              <span>→</span>
+            </button>
+
+            <p class="helper">
+              O evento recebe um identificador único e é persistido junto da atualização.
+            </p>
+
+          </div>
+
+          <p
+            id="result-message"
+            class="message"
+            role="status"
+            aria-live="polite"
+          ></p>
+
+        </div>
+
+      </section>
+
+    </div>
+
+    <section class="panel history-panel">
+
+      <div class="section-head history-head">
+
+        <div>
+          <p class="eyebrow">03 / REGISTROS</p>
+          <h2>Histórico de cobranças</h2>
+
+          <p class="section-description">
+            Tudo o que já foi criado, direto do banco de dados.
+          </p>
+        </div>
+
+        <div class="filter">
+
+          <label for="status-filter">FILTRAR POR STATUS</label>
+
+          <select id="status-filter">
+
+            <option value="">Todos os status</option>
+            <option value="pending">Pendente</option>
+            <option value="approved">Aprovado</option>
+            <option value="rejected">Recusado</option>
+            <option value="cancelled">Cancelado</option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>CLIENTE</th>
+              <th>VALOR</th>
+              <th>STATUS</th>
+              <th>IDENTIFICADOR</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody id="payments-list">
+
+            <tr>
+              <td colspan="5" class="table-empty">
+                Carregando registros...
+              </td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+      <p
+        id="list-message"
+        class="message"
+        role="status"
+        aria-live="polite"
+      ></p>
+
+    </section>
+
+    <footer>
+
+      <span class="footer-brand">
+        OFICINA <b>WEBHOOK</b>
+      </span>
+
+      <span>
+        Construído para aprender. Organizado para evoluir.
+      </span>
+
+      <span class="footer-year">
+        NODE.JS · EXPRESS · MYSQL
+      </span>
+
+    </footer>
+
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- ATUALIZAÇÃO AUTOMÁTICA DO QR CODE -->
+
+  <script>
+
+    const paymentIdElement = document.querySelector('#payment-id');
+    const qrImage = document.querySelector('#qr-image');
+
+    function atualizarQRCode() {
+
+      const pagamentoId = paymentIdElement.textContent.trim();
+
+      if (!pagamentoId) {
+        qrImage.src = '';
+        return;
+      }
+
+      const conteudo = `DEMO-PIX|${pagamentoId}`;
+
+      qrImage.src =
+        `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(conteudo)}`;
+
+    }
+
+    const observador = new MutationObserver(atualizarQRCode);
+
+    observador.observe(paymentIdElement, {
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
+
+  </script>
+
+</body>
+</html>
